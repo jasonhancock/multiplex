@@ -6,15 +6,15 @@ import (
 )
 
 func Example() {
-	var chans []chan []byte
-	for i := 0; i < 10; i++ {
-		chans = append(chans, make(chan []byte, 1000))
-	}
+	chLow := make(chan []byte, 10)
+	chHigh := make(chan []byte, 10)
 
-	plexer := New(chans...)
-	for i := 0; i < 100; i++ {
-		chans[i%10] <- []byte(fmt.Sprintf("%d", i))
-	}
+	plexer := New(chHigh, chLow)
+
+	chLow <- []byte("low1")
+	chLow <- []byte("low2")
+	chHigh <- []byte("high1")
+	chHigh <- []byte("high2")
 
 	go func() {
 		plexer.Run()
@@ -29,9 +29,8 @@ func Example() {
 		}
 	}()
 
-	for i := 0; i < 10; i++ {
-		close(chans[i])
-	}
+	close(chLow)
+	close(chHigh)
 
 	wg.Wait()
 }

@@ -4,12 +4,12 @@ import "reflect"
 
 // Plexer is a priority channel N:1 multiplexer
 type Plexer struct {
-	channels []chan []byte
+	channels []<-chan []byte
 	output   chan []byte
 }
 
 // New constructs a new Plexer. Channels should be added in highest to lowest priority order.
-func New(channels ...chan []byte) *Plexer {
+func New(channels ...<-chan []byte) *Plexer {
 	return &Plexer{
 		channels: channels,
 		output:   make(chan []byte),
@@ -29,7 +29,7 @@ func (p *Plexer) Out() <-chan []byte {
 // read reads from the given channel. If a message was read, it returns the
 // message plus true, else returns nil and a boolean indicating if the channel
 // was closed
-func read(ch chan []byte) ([]byte, bool) {
+func read(ch <-chan []byte) ([]byte, bool) {
 	select {
 	case msg, ok := <-ch:
 		if !ok {

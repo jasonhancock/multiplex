@@ -18,7 +18,7 @@ func TestPlexer(t *testing.T) {
 		chans = append(chans, make(chan []byte, 1000))
 	}
 
-	plexer := New(chans...)
+	plexer := New(chConv(chans...)...)
 	for i := 0; i < 100; i++ {
 		chans[i%10] <- []byte(fmt.Sprintf("%d", i))
 	}
@@ -64,7 +64,7 @@ func TestPlexerCloseChan(t *testing.T) {
 		chans = append(chans, make(chan []byte, 1000))
 	}
 
-	plexer := New(chans...)
+	plexer := New(chConv(chans...)...)
 	go func() {
 		plexer.Run()
 	}()
@@ -96,4 +96,12 @@ func TestPlexerCloseChan(t *testing.T) {
 
 	is.Equal(values[0], []byte("foo"))
 	is.Equal(values[1], []byte("bar"))
+}
+
+func chConv(channels ...chan []byte) []<-chan []byte {
+	ret := make([]<-chan []byte, len(channels))
+	for n, ch := range channels {
+		ret[n] = ch
+	}
+	return ret
 }
