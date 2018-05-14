@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - 1.10.x
+  - tip
+
+before_install:
+  - go get github.com/golang/lint/golint
+
+before_script:
+  - go vet ./...
+  - golint -set_exit_status ./...
+
+script:
+  - go test -v ./...
