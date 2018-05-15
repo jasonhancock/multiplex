@@ -52,32 +52,33 @@ func (p *Plexer) Run() {
 			return
 		}
 
-		if !handledMsg {
-			// if after ranging over all the channels we didn't have any work, that means
-			// that there were no messages on any of the channels. We now want to block
-			// here and wait for a message from ANY channel
+		if handledMsg {
+			continue
+		}
 
-			cases := make([]reflect.SelectCase, 0, len(p.channels))
-			for _, ch := range p.channels {
-				if ch == nil {
-					continue
-				}
-				cases = append(cases, reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)})
+		// if after ranging over all the channels we didn't have any work, that means
+		// that there were no messages on any of the channels. We now want to block
+		// here and wait for a message from ANY channel
+		cases := make([]reflect.SelectCase, 0, len(p.channels))
+		for _, ch := range p.channels {
+			if ch == nil {
+				continue
+			}
+			cases = append(cases, reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)})
+		}
+
+		remaining := len(cases)
+		for remaining > 0 {
+			chosen, value, ok := reflect.Select(cases)
+			if !ok {
+				// The chosen channel has been closed, so zero out the channel to disable the case
+				cases[chosen].Chan = reflect.ValueOf(nil)
+				remaining--
+				continue
 			}
 
-			remaining := len(cases)
-			for remaining > 0 {
-				chosen, value, ok := reflect.Select(cases)
-				if !ok {
-					// The chosen channel has been closed, so zero out the channel to disable the case
-					cases[chosen].Chan = reflect.ValueOf(nil)
-					remaining--
-					continue
-				}
-
-				p.output <- value.Bytes()
-				break
-			}
+			p.output <- value.Bytes()
+			break
 		}
 	}
 }
