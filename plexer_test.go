@@ -7,12 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cheekybits/is"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPlexer(t *testing.T) {
-	is := is.New(t)
-
 	var chans []chan []byte
 	for i := 0; i < 10; i++ {
 		chans = append(chans, make(chan []byte, 1000))
@@ -50,14 +48,12 @@ func TestPlexer(t *testing.T) {
 			mod++
 		}
 		val, err := strconv.Atoi(string(values[i]))
-		is.NoErr(err)
-		is.True(val%10 == mod)
+		require.NoError(t, err)
+		require.True(t, val%10 == mod)
 	}
 }
 
 func TestPlexerCloseChan(t *testing.T) {
-	is := is.New(t)
-
 	var chans []chan []byte
 
 	for i := 0; i < 10; i++ {
@@ -94,8 +90,8 @@ func TestPlexerCloseChan(t *testing.T) {
 	}
 	wg.Wait()
 
-	is.Equal(values[0], []byte("foo"))
-	is.Equal(values[1], []byte("bar"))
+	require.Equal(t, []byte("foo"), values[0])
+	require.Equal(t, []byte("bar"), values[1])
 }
 
 func chConv(channels ...chan []byte) []<-chan []byte {
